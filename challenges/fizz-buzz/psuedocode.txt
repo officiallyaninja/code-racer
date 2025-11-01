@@ -1,0 +1,13 @@
+SET i = 1
+WHILE i ≤ 100 DO
+    IF i divisible by 3 AND i divisible by 5 THEN
+        DISPLAY "FizzBuzz"
+    ELSE IF i divisible by 3 THEN
+        DISPLAY "Fizz"
+    ELSE IF i divisible by 5 THEN
+        DISPLAY "Buzz"
+    ELSE
+        DISPLAY i
+    END IF
+    INCREMENT i by 1
+END WHILE
