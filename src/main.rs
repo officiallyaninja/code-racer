@@ -23,13 +23,19 @@ fn create_marker_file(dir: &Path) -> anyhow::Result<()> {
 ///
 /// This is to ensure that we don't accidentally modify a directory the user is using.
 fn validate_challenge_folder(dir: &PathBuf) -> anyhow::Result<()> {
-    let x = dir
+    if !dir.join(MARKER_EXT).exists() {
+        anyhow::bail!("Missing .racer marker file");
+    }
+    // TODO: use SERDE to read file and check if the data in .racer matches the folder
+    let dir_entries = dir
         .read_dir()
         .context(format!("could not read directory: {}", dir.display()))?
-        .map(|e| {
-            todo!("check if .racer file exists (and figure out when to err and with what message)")
-        });
-    todo!("verify if .racer has expected data")
+        .map(|e| match e {
+            Ok(entry) => entry,
+            Err(error) => todo!("I'm not sure how to handle these tbh"),
+        })
+        .collect::<Vec<_>>();
+    Ok(())
 }
 
 fn main() -> anyhow::Result<()> {
