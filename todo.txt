@@ -5,4 +5,8 @@ If it exists and is empty → reuse it.
 If it exists and contains your .racer marker → safe to overwrite.
 Otherwise → abort with a friendly message.
 
-create a .racer file in each folder to mark if the folder is safe to fuck with
+create a .racer file in each folder to mark if the folder is safe to edit
+
+for index files keep 
+ - schema version (to future proof backwards compatibility)
+ - time generated at (to know when to override cache)
