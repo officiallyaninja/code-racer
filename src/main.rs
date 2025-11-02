@@ -1,6 +1,7 @@
 mod args;
 
 use clap::Parser;
+use color_eyre::eyre::Context;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -39,6 +40,7 @@ fn validate_challenge_folder(dir: &Path) -> anyhow::Result<()> {
 }
 
 fn main() -> anyhow::Result<()> {
+    color_eyre::install().unwrap();
     let args = args::Args::parse();
 
     // TODO: fetch the actual data about the challenge
@@ -70,6 +72,7 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cfg(test)]
 mod test {
     use anyhow::Context;
 
