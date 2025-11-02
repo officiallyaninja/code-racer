@@ -1,29 +1,28 @@
+mod args;
+
+use clap::Parser;
 use std::{
-    collections::HashSet,
-    env, fs,
+    fs,
     path::{Path, PathBuf},
 };
 
-use anyhow::{anyhow, Context};
-use clap::Parser;
+use anyhow::Context;
 
 const PATH: &str = "code-race";
 const MARKER_EXT: &str = ".racer";
-/// Simple program to greet a person
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
-    /// Create challenge files in the current directory instead of a new one.
-    #[arg(short, long)]
-    in_place: bool,
-}
 
 fn create_marker_file(dir: &Path) -> anyhow::Result<()> {
     fs::create_dir(dir).context("could not create .racer marker file")?;
     todo!("add metadata to .racer file")
 }
 
-fn is_valid_challenge_folder(dir: &PathBuf) -> anyhow::Result<()> {
+/// Checks if the directory is a valid challenge folder.
+/// That is checks if it has a .racer file.
+///
+/// TODO: make it check if the files in dir match data in the .racer file
+///
+/// This is to ensure that we don't accidentally modify a directory the user is using.
+fn validate_challenge_folder(dir: &PathBuf) -> anyhow::Result<()> {
     let x = dir
         .read_dir()
         .context(format!("could not read directory: {}", dir.display()))?
@@ -34,11 +33,11 @@ fn is_valid_challenge_folder(dir: &PathBuf) -> anyhow::Result<()> {
 }
 
 fn main() -> anyhow::Result<()> {
-    let Args { in_place } = Args::parse();
+    let args = args::Args::parse();
 
     // TODO: fetch the actual data about the challenge
     let cur_dir = std::env::current_dir().context("Could not get current directory")?;
-    let challenge_dir = if in_place {
+    let challenge_dir = if args.in_place {
         if cur_dir
             .read_dir()
             .context(format!("Failed to read directory: {}", cur_dir.display()))?
@@ -54,7 +53,7 @@ fn main() -> anyhow::Result<()> {
     } else {
         let path = cur_dir.join(PATH);
         if path.exists() {
-            is_valid_challenge_folder(&path)?;
+            validate_challenge_folder(&path)?;
         } else {
             fs::create_dir(PATH).context(format!("could not create folder '{PATH}'"))?;
             create_marker_file(&path);
