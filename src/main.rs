@@ -22,7 +22,7 @@ fn create_marker_file(dir: &Path) -> anyhow::Result<()> {
 /// TODO: make it check if the files in dir match data in the .racer file
 ///
 /// This is to ensure that we don't accidentally modify a directory the user is using.
-fn validate_challenge_folder(dir: &PathBuf) -> anyhow::Result<()> {
+fn validate_challenge_folder(dir: &Path) -> anyhow::Result<()> {
     if !dir.join(MARKER_EXT).exists() {
         anyhow::bail!("Missing .racer marker file");
     }
@@ -68,4 +68,24 @@ fn main() -> anyhow::Result<()> {
     };
 
     Ok(())
+}
+
+mod test {
+    use anyhow::Context;
+
+    use crate::{create_marker_file, validate_challenge_folder, MARKER_EXT};
+
+    #[test]
+    fn make_simple() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir().context("Failed to create Temp file")?;
+        create_marker_file(temp.path())?;
+
+        assert!(
+            temp.path().join(MARKER_EXT).exists(),
+            "{MARKER_EXT} file missing",
+        );
+
+        validate_challenge_folder(temp.path())?;
+        Ok(())
+    }
 }
