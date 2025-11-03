@@ -1,14 +1,17 @@
 mod args;
+mod manifest;
+mod marker;
 
 use clap::Parser;
 use color_eyre::eyre::{bail, Context};
 use std::{fs, path::Path};
 
 const PATH: &str = "code-race";
-const MARKER_EXT: &str = ".racer";
+const MARKER_FILE: &str = ".racer";
 
 fn create_marker_file(dir: &Path) -> color_eyre::Result<()> {
-    fs::create_dir(dir).context("could not create .racer marker file")?;
+    let racer_file = fs::File::create_new(dir.join(MARKER_FILE))
+        .context("could not create .racer marker file")?;
     // TODO: add metadata to .racer file
     Ok(())
 }
@@ -20,7 +23,7 @@ fn create_marker_file(dir: &Path) -> color_eyre::Result<()> {
 ///
 /// This is to ensure that we don't accidentally modify a directory the user is using.
 fn validate_challenge_folder(dir: &Path) -> color_eyre::Result<()> {
-    if !dir.join(MARKER_EXT).exists() {
+    if !dir.join(MARKER_FILE).exists() {
         bail!("Missing .racer marker file");
     }
     // TODO: use SERDE to read file and check if the data in .racer matches the folder
@@ -70,20 +73,23 @@ fn main() -> color_eyre::Result<()> {
 
 #[cfg(test)]
 mod test {
-
+    use crate::{create_marker_file, validate_challenge_folder, MARKER_FILE};
     use color_eyre::eyre::Context;
 
-    use crate::{create_marker_file, validate_challenge_folder, MARKER_EXT};
+    fn setup() -> color_eyre::Result<()> {
+        color_eyre::install().context("failed to install color_eyre")?;
+        Ok(())
+    }
 
     #[test]
     fn make_simple() -> color_eyre::Result<()> {
-        color_eyre::install()?;
+        setup().context("failed to setup test")?;
         let temp = tempfile::tempdir().context("Failed to create Temp file")?;
         create_marker_file(temp.path()).context("Failed to create Marker file")?;
 
         assert!(
-            temp.path().join(MARKER_EXT).exists(),
-            "{MARKER_EXT} file missing",
+            temp.path().join(MARKER_FILE).exists(),
+            "{MARKER_FILE} file missing",
         );
 
         validate_challenge_folder(temp.path())?;
