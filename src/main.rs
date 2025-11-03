@@ -1,20 +1,16 @@
 mod args;
 
 use clap::Parser;
-use color_eyre::eyre::Context;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
-
-use anyhow::Context;
+use color_eyre::eyre::{bail, Context};
+use std::{fs, path::Path};
 
 const PATH: &str = "code-race";
 const MARKER_EXT: &str = ".racer";
 
-fn create_marker_file(dir: &Path) -> anyhow::Result<()> {
+fn create_marker_file(dir: &Path) -> color_eyre::Result<()> {
     fs::create_dir(dir).context("could not create .racer marker file")?;
-    todo!("add metadata to .racer file")
+    // TODO: add metadata to .racer file
+    Ok(())
 }
 
 /// Checks if the directory is a valid challenge folder.
@@ -23,9 +19,9 @@ fn create_marker_file(dir: &Path) -> anyhow::Result<()> {
 /// TODO: make it check if the files in dir match data in the .racer file
 ///
 /// This is to ensure that we don't accidentally modify a directory the user is using.
-fn validate_challenge_folder(dir: &Path) -> anyhow::Result<()> {
+fn validate_challenge_folder(dir: &Path) -> color_eyre::Result<()> {
     if !dir.join(MARKER_EXT).exists() {
-        anyhow::bail!("Missing .racer marker file");
+        bail!("Missing .racer marker file");
     }
     // TODO: use SERDE to read file and check if the data in .racer matches the folder
     let dir_entries = dir
@@ -39,7 +35,7 @@ fn validate_challenge_folder(dir: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() -> color_eyre::Result<()> {
     color_eyre::install().unwrap();
     let args = args::Args::parse();
 
@@ -52,7 +48,7 @@ fn main() -> anyhow::Result<()> {
             .next()
             .is_some()
         {
-            anyhow::bail!("Current directory is not empty, run without --in-place to create a new folder for challenge");
+            bail!("Current directory is not empty, run without --in-place to create a new folder for challenge");
         } else {
             create_marker_file(&cur_dir)?;
         }
@@ -64,7 +60,7 @@ fn main() -> anyhow::Result<()> {
             validate_challenge_folder(&path)?;
         } else {
             fs::create_dir(PATH).context(format!("could not create folder '{PATH}'"))?;
-            create_marker_file(&path);
+            create_marker_file(&path)?;
         }
         path
     };
@@ -74,14 +70,16 @@ fn main() -> anyhow::Result<()> {
 
 #[cfg(test)]
 mod test {
-    use anyhow::Context;
+
+    use color_eyre::eyre::Context;
 
     use crate::{create_marker_file, validate_challenge_folder, MARKER_EXT};
 
     #[test]
-    fn make_simple() -> anyhow::Result<()> {
+    fn make_simple() -> color_eyre::Result<()> {
+        color_eyre::install()?;
         let temp = tempfile::tempdir().context("Failed to create Temp file")?;
-        create_marker_file(temp.path())?;
+        create_marker_file(temp.path()).context("Failed to create Marker file")?;
 
         assert!(
             temp.path().join(MARKER_EXT).exists(),
