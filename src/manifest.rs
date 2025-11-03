@@ -36,7 +36,7 @@ mod test {
     fn basic_json() -> color_eyre::Result<()> {
         let json = r#"
     {
-        "schema_version": 1,
+        "data_version": 1,
         "conversion": {
             "fizz-buzz": { "langs": ["rust", "go"] },
             "palindrome": { "langs": ["python", "javascript"] }
