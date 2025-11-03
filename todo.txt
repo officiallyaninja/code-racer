@@ -1,3 +1,7 @@
+1. create an index
+2. 
+
+
 # stuff to keep in mind
 
 If the directory doesn’t exist → create it.
