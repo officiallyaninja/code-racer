@@ -14,34 +14,56 @@ pub fn generate_challenge_types(_attr: TokenStream, item: TokenStream) -> TokenS
         _ => {
             return syn::Error::new_spanned(
                 struct_name,
-                "ChallengeTypes only supports structs with named fields",
+                "generate_challenge_types only supports structs with named fields",
             )
             .to_compile_error()
             .into();
         }
     };
 
-    // Collect all field names except `data_version`
-    let variants = fields.iter().filter_map(|f| {
-        let name = f.ident.as_ref()?;
-        if name == "data_version" {
-            return None;
-        }
+    // Build enum variants
+    let variants: Vec<Ident> = fields
+        .iter()
+        .filter_map(|f| {
+            let name = f.ident.as_ref()?;
+            if name == "data_version" {
+                return None;
+            }
 
-        // Capitalize the first letter for enum variant
-        let mut variant_name = name.to_string();
-        variant_name.replace_range(0..1, &variant_name[0..1].to_uppercase());
-        Some(Ident::new(&variant_name, name.span()))
+            let mut variant_name = name.to_string();
+            variant_name.replace_range(0..1, &variant_name[0..1].to_uppercase());
+            Some(Ident::new(&variant_name, name.span()))
+        })
+        .collect();
+
+    // Build match arms for TryFrom<&str>
+    let variant_arms = variants.iter().map(|variant_ident| {
+        let variant_str = variant_ident.to_string();
+        quote! {
+            #variant_str => Ok(ChallengeType::#variant_ident),
+        }
     });
 
-    // Generate the enum
+    // Generate the enum definition
     let enum_def = quote! {
+        #[derive(Debug)]
         pub enum ChallengeType {
             #(#variants),*
         }
+
+        impl TryFrom<&str> for ChallengeType {
+            type Error = ();
+
+            fn try_from(value: &str) -> Result<Self, Self::Error> {
+                match value {
+                    #(#variant_arms)*
+                    _ => Err(()),
+                }
+            }
+        }
     };
 
-    // Keep the original struct + add the enum
+    // Combine the original struct + generated enum
     let expanded = quote! {
         #input
         #enum_def
