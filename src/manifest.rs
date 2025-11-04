@@ -17,14 +17,24 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Manifest {
-    data_version: u32,
-    conversion: HashMap<String, Conversion>,
+    pub data_version: u32,
+    pub conversion: HashMap<String, Conversion>,
+    pub completion: HashMap<String, Completion>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Conversion {
-    langs: Vec<String>,
+    pub langs: Vec<String>,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Completion {
+    pub langs: Vec<String>,
+}
+
+// pub struct Conversion {
+//     pub langs: Vec<String>,
+// }
 
 #[cfg(test)]
 mod test {
