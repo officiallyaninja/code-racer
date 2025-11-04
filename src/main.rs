@@ -1,5 +1,4 @@
 mod args;
-mod manifest;
 mod marker;
 
 use clap::Parser;
