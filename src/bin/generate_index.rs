@@ -1,5 +1,5 @@
 use code_racer::{
-    manifest::{Completion, Conversion, Manifest},
+    manifest::{ChallengeType, Completion, Conversion, Manifest},
     DATA_VERSION,
 };
 use std::{collections::HashMap, env, fs::File, io::Write, path::PathBuf};
@@ -19,61 +19,50 @@ fn main() {
         .read_dir()
         .expect("Error reading directory challenges/")
     {
-        let challenge_category =
+        let challenge_type_dir =
             entry.unwrap_or_else(|e| panic!("error reading directory challenges/ : {e}"));
-        let challenge_category_path = challenge_category.path();
-        let challenge_category_name = challenge_category
+        let challenge_type_path = challenge_type_dir.path();
+        let challenge_type_name = challenge_type_dir
             .file_name()
             .into_string()
             .expect("failed to convert OSString to String");
 
-        dbg!(&challenge_category_name);
-
-        for entry in PathBuf::from(&challenge_category_path)
+        for entry in PathBuf::from(&challenge_type_path)
             .read_dir()
             .expect("we got this path fom a dir entry so it should not error")
         {
-            let challenge = entry.unwrap_or_else(|e| {
+            let challenge_dir = entry.unwrap_or_else(|e| {
                 panic!(
                     "error reading directory challenges/{}/ : {e}",
-                    challenge_category_path.display()
+                    challenge_type_path.display()
                 )
             });
 
-            dbg!(&challenge.file_name().into_string().unwrap());
+            let challenge_type = ChallengeType::try_from(challenge_type_name.as_ref())
+                .expect("Unexpected directory");
+            match challenge_type {
+                ChallengeType::Completion => {
+                    let challenge_name = challenge_dir
+                        .file_name()
+                        .into_string()
+                        .expect("failed to convert OSString to String");
 
-            match challenge_category_name.as_ref() {
-                "completion" => {
-                    let name = challenge
-                        .file_name()
-                        .into_string()
-                        .expect("failed to convert OSString to String");
-                    let mut langs = Vec::new();
-                    for lang_folder in PathBuf::from(challenge.path())
-                        .read_dir()
-                        .expect("we got this path fom a dir entry so it should not error")
-                    {
-                        let lang_folder = lang_folder.unwrap_or_else(|e| {
-                            panic!("error reading challenges/completion/'{}': {e}", name)
-                        });
-                        langs.push(
-                            lang_folder
-                                .file_name()
-                                .into_string()
-                                .expect("failed to convert OSString to String"),
-                        );
-                    }
                     completion_challenges
-                        .insert(name.clone(), Completion { langs })
-                        .map(|_| panic!("duplicate {}, {:?}", name, completion_challenges));
+                        .insert(
+                            challenge_name.clone(),
+                            Completion::new_from_fs(&PathBuf::from(challenge_dir.path())),
+                        )
+                        .map(|_| {
+                            panic!("duplicate {}, {:?}", challenge_name, completion_challenges)
+                        });
                 }
-                "conversion" => {
-                    let name = challenge
+                ChallengeType::Conversion => {
+                    let name = challenge_dir
                         .file_name()
                         .into_string()
                         .expect("failed to convert OSString to String");
                     let mut langs = Vec::new();
-                    for lang_file in PathBuf::from(challenge.path())
+                    for lang_file in PathBuf::from(challenge_dir.path())
                         .read_dir()
                         .expect("we got this path fom a dir entry so it should not error")
                     {
@@ -94,9 +83,6 @@ fn main() {
                     conversion_challenges
                         .insert(name.clone(), Conversion { langs })
                         .map(|_| panic!("duplicate {}, {:?}", name, conversion_challenges));
-                }
-                _ => {
-                    panic!("Unexpected directory")
                 }
             }
         }
