@@ -1,19 +1,19 @@
 {
   "data_version": 1,
+  "completion": {
+    "vector_ops": {
+      "langs": [
+        "go",
+        "rust"
+      ]
+    }
+  },
   "conversion": {
     "fizz-buzz": {
       "langs": [
         "go",
         "psuedocode",
         "python",
-        "rust"
-      ]
-    }
-  },
-  "completion": {
-    "vector_ops": {
-      "langs": [
-        "go",
         "rust"
       ]
     }

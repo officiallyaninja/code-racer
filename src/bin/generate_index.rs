@@ -57,32 +57,18 @@ fn main() {
                         });
                 }
                 ChallengeType::Conversion => {
-                    let name = challenge_dir
+                    let challenge_name = challenge_dir
                         .file_name()
                         .into_string()
                         .expect("failed to convert OSString to String");
-                    let mut langs = Vec::new();
-                    for lang_file in PathBuf::from(challenge_dir.path())
-                        .read_dir()
-                        .expect("we got this path fom a dir entry so it should not error")
-                    {
-                        let lang_folder = lang_file.unwrap_or_else(|e| {
-                            panic!("error reading challenges/completion/'{}': {e}", name)
-                        });
-                        langs.push(
-                            lang_folder
-                                .file_name()
-                                .into_string()
-                                .expect("failed to convert OSString to String")
-                                .split_once('.')
-                                .expect("file should contain a '.' ")
-                                .0
-                                .to_string(),
-                        );
-                    }
                     conversion_challenges
-                        .insert(name.clone(), Conversion { langs })
-                        .map(|_| panic!("duplicate {}, {:?}", name, conversion_challenges));
+                        .insert(
+                            challenge_name.clone(),
+                            Conversion::new_from_fs(&PathBuf::from(challenge_dir.path())),
+                        )
+                        .map(|_| {
+                            panic!("duplicate {}, {:?}", challenge_name, conversion_challenges)
+                        });
                 }
             }
         }
