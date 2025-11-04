@@ -38,7 +38,7 @@ pub fn generate_challenge_types(_attr: TokenStream, item: TokenStream) -> TokenS
 
     // Build match arms for TryFrom<&str>
     let variant_arms = variants.iter().map(|variant_ident| {
-        let variant_str = variant_ident.to_string();
+        let variant_str = variant_ident.to_string().to_lowercase();
         quote! {
             #variant_str => Ok(ChallengeType::#variant_ident),
         }
@@ -55,7 +55,7 @@ pub fn generate_challenge_types(_attr: TokenStream, item: TokenStream) -> TokenS
             type Error = ();
 
             fn try_from(value: &str) -> Result<Self, Self::Error> {
-                match value {
+                match value.to_lowercase().as_ref() {
                     #(#variant_arms)*
                     _ => Err(()),
                 }
